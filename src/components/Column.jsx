@@ -5,7 +5,7 @@ import ColumnHeader from './headers/ColumnHeader';
 const Column = ({ title, tickets }) => {
   return (
     <div className="column">
-      <ColumnHeader title={title} />
+      <ColumnHeader title={title} number={tickets.length} />
       {tickets.map((ticket) => (
         <Card key={ticket.id} ticket={ticket} />
       ))}

@@ -1,29 +1,8 @@
+import { useState, useEffect } from "react";
 import './App.css';
 import Column from './components/Column';
 import Navbar from './components/headers/NavBar';
-import { useState } from 'react';
-
-const data = {
-  tickets: [
-    { id: "CAM-1", title: "Update User Profile Page UI", tag: ["Feature request"], userId: "usr-1", status: "Todo", priority: 4 },
-    { id: "CAM-2", title: "Add Multi-Language Support", tag: ["Feature Request"], userId: "usr-2", status: "In progress", priority: 3 },
-    { id: "CAM-3", title: "Optimize Database Queries", tag: ["Feature Request"], userId: "usr-2", status: "In progress", priority: 1 },
-    { id: "CAM-4", title: "Implement Email Notification System", tag: ["Feature Request"], userId: "usr-1", status: "In progress", priority: 3 },
-    { id: "CAM-5", title: "Enhance Search Functionality", tag: ["Feature Request"], userId: "usr-5", status: "In progress", priority: 0 },
-    { id: "CAM-6", title: "Third-Party Payment Gateway", tag: ["Feature Request"], userId: "usr-2", status: "Todo", priority: 1 },
-    { id: "CAM-7", title: "Create Onboarding Tutorial", tag: ["Feature Request"], userId: "usr-1", status: "Backlog", priority: 2 },
-    { id: "CAM-8", title: "Implement RBAC", tag: ["Feature Request"], userId: "usr-3", status: "In progress", priority: 3 },
-    { id: "CAM-9", title: "Upgrade Server Infrastructure", tag: ["Feature Request"], userId: "usr-5", status: "Todo", priority: 2 },
-    { id: "CAM-10", title: "Conduct Security Vulnerability Assessment", tag: ["Feature Request"], userId: "usr-4", status: "Backlog", priority: 1 },
-  ],
-  users: [
-    { id: "usr-1", name: "Anoop Sharma" },
-    { id: "usr-2", name: "Yogesh" },
-    { id: "usr-3", name: "Shankar Kumar" },
-    { id: "usr-4", name: "Ramesh" },
-    { id: "usr-5", name: "Suresh" },
-  ],
-};
+import fetchDataInstance from './services/FetchData';
 
 const priorityLabels = {
   4: "High",
@@ -37,6 +16,18 @@ const statusLabels = ["In progress", "Todo", "Backlog", "Done", "Cancelled"];
 
 function App() {
   const [groupBy, setGroupBy] = useState("username");
+  const [data, setData] = useState({ tickets: [], users: [] }); // Initialize data state
+
+  useEffect(() => {
+    // Fetch data on component mount
+    const fetchData = async () => {
+      const fetchedData = await fetchDataInstance.fetchData();
+      if (fetchedData) {
+        setData(fetchedData);
+      }
+    };
+    fetchData();
+  }, []);
 
   const handleGroupChange = (value) => {
     setGroupBy(value);
@@ -54,10 +45,16 @@ function App() {
     }
 
     if (groupBy === "priority") {
+      const sortedTickets = [...tickets].sort((a, b) => {
+        // First, sort by priority: 0 comes first, then 4, 3, 2, 1
+        if (a.priority === 0) return -1; // Put 0 first
+        if (b.priority === 0) return 1;  // Put 0 first
+        return b.priority - a.priority;  // Then sort remaining priorities from high to low
+      });
       return Object.keys(priorityLabels).map((priority) => ({
         key: priority,
         label: priorityLabels[priority],
-        tickets: tickets.filter((ticket) => ticket.priority === parseInt(priority)),
+        tickets: sortedTickets.filter((ticket) => ticket.priority === parseInt(priority)),
       }));
     }
 
